@@ -1,0 +1,47 @@
+﻿@model RegisterViewModel
+@{
+    ViewData["Title"] = "Register";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="auth-container">
+    <h3 class="text-center mb-4">Register</h3>
+
+    <form asp-action="Register" method="post" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label asp-for="Name" class="form-label"></label>
+            <input asp-for="Name" class="form-control" />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Email" class="form-label"></label>
+            <input asp-for="Email" class="form-control" />
+            <span asp-validation-for="Email" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Password" class="form-label"></label>
+            <input asp-for="Password" class="form-control" type="password" />
+            <span asp-validation-for="Password" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Designation" class="form-label"></label>
+            <input asp-for="Designation" class="form-control"/>
+            <span asp-validation-for="Designation" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="SignatureImage" class="form-label"></label>
+            <input asp-for="SignatureImage" type="file" class="form-control" />
+            <span asp-validation-for="SignatureImage" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="StampImage" class="form-label"></label>
+            <input asp-for="StampImage" type="file" class="form-control" />
+            <span asp-validation-for="StampImage" class="text-danger"></span>
+        </div>
+        <button type="submit" class="btn btn-success w-100">Register</button>
+    </form>
+
+    <div class="text-center mt-3">
+        <small>Already signed up? <a asp-controller="Auth" asp-action="Login">Login</a></small>
+    </div>
+</div>

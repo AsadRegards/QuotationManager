@@ -1,0 +1,57 @@
+﻿@using QuotationManager.Models
+@model List<Quotation>
+@{
+    ViewData["Title"] = "All Quotations";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<h2 class="mb-4">All Quotations</h2>
+
+<form method="get" class="row mb-4">
+    <div class="col-md-3">
+        <input name="referenceFilter" class="form-control" placeholder="Reference No" value="@Context.Request.Query["referenceFilter"]" />
+    </div>
+    <div class="col-md-3">
+        <input type="date" name="startDate" class="form-control" value="@Context.Request.Query["startDate"]" />
+    </div>
+    <div class="col-md-3">
+        <input type="date" name="endDate" class="form-control" value="@Context.Request.Query["endDate"]" />
+    </div>
+    <div class="col-md-3">
+        <button class="btn btn-primary" type="submit">Filter</button>
+    </div>
+</form>
+
+<table class="table table-bordered table-hover">
+    <thead class="table-dark">
+        <tr>
+            <th>Reference No</th>
+            <th>Quotation Date</th>
+            <th>Quotation Value</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var q in Model)
+        {
+            <tr>
+                <td>@q.ReferenceNumber</td>
+                <td>@q.QuotationDate.ToString("dd-MM-yyyy")</td>
+                <td>Rs @q.Total.ToString("N0")</td>
+                <td>
+                    @if (!string.IsNullOrEmpty(q.QuotationFIlePath))
+                    {
+                        <a target="_blank" class="btn btn-sm btn-outline-primary"
+                           href="@Url.Content("~/" + q.QuotationFIlePath)">
+                            View PDF
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="text-danger">No File</span>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

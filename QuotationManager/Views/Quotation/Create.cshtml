@@ -1,0 +1,159 @@
+﻿@using QuotationManager.Models
+@model CreateQuotationViewModel
+@{
+    ViewData["Title"] = "Create Quotation";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<h2 class="my-4">Create Quotation</h2>
+
+<div class="row">
+    <!-- Form Section -->
+    <div class="col-md-6">
+        <form id="quotationForm" method="post" enctype="multipart/form-data" asp-action="Create">
+            <div class="mb-3">
+                <label asp-for="ReferenceNumber" class="form-label">Reference Number</label>
+                <input asp-for="ReferenceNumber" value=@ViewBag.ReferenceNumber class="form-control" readonly />
+                <span asp-validation-for="ReferenceNumber" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="QuotationDate" class="form-label">Quotation Date</label>
+                <input asp-for="QuotationDate"  value="@DateTime.Now.ToString("yyyy-MM-dd")" type="date" class="form-control" />
+                <span asp-validation-for="QuotationDate" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="CustomerName" class="form-label">Customer Name</label>
+                <input asp-for="CustomerName" type="text" class="form-control" />
+                <span asp-validation-for="CustomerName" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="AddressLine1" class="form-label">Address Line 1</label>
+                <input asp-for="AddressLine1" type="text" class="form-control" />
+                <span asp-validation-for="AddressLine1" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="AddressLine2" class="form-label">Address Line 2</label>
+                <input asp-for="AddressLine2" type="text" class="form-control" />
+                <span asp-validation-for="AddressLine2" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="AddressLine3" class="form-label">Address Line 3</label>
+                <input asp-for="AddressLine3" type="text" class="form-control" />
+                <span asp-validation-for="AddressLine3" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label">Email</label>
+                <input asp-for="Email" type="email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="PhoneNumber" class="form-label">Phone Number</label>
+                <input asp-for="PhoneNumber" type="tel" class="form-control" />
+                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+            </div>
+
+
+            <div class="mb-3">
+                <label asp-for="GSTPercentage" class="form-label">GST (%)</label>
+                <input value="18" asp-for="GSTPercentage" type="number" class="form-control" />
+                <span asp-validation-for="GSTPercentage" class="text-danger"></span>
+            </div>
+
+            <div id="productContainer">
+                <label class="form-label">Products</label>
+                <div class="product-item mb-3 border p-2 position-relative">
+                    <button type="button" class="position-absolute top-0 end-0 m-2" aria-label="Remove" onclick="removeProduct(this)">✘</button>
+                    <select name="Products[0].ProductId" class="form-select product-select">
+                        <option disabled selected>-- Select Product --</option>
+                        @foreach (var product in ViewBag.Products as List<Product>)
+                        {
+                            <option value="@product.Id">@product.Name</option>
+                        }
+                    </select>
+                    <input type="number" name="Products[0].Quantity" class="form-control mt-2" placeholder="Quantity" />
+                </div>
+            </div>
+
+            <button type="button" class="btn btn-secondary mb-3" id="addProductBtn">+ Add Another Product</button>
+
+            <button type="submit" class="btn btn-success">Save Quotation</button>
+        </form>
+    </div>
+
+    <!-- Preview Section -->
+    <div class="col-md-6">
+        <h4 class="mb-2">Live Quotation Preview</h4>
+        <iframe id="previewFrame" width="100%" height="600px" style="border: 1px solid #ccc;"></iframe>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let productIndex = 1;
+
+        document.getElementById('addProductBtn').addEventListener('click', function () {
+            const container = document.getElementById('productContainer');
+            const block = document.createElement('div');
+            block.className = 'product-item mb-3 border p-2 position-relative';
+
+            const productOptions = `
+                <option disabled selected>-- Select Product --</option>
+                ${Array.from(document.querySelectorAll('select[name^="Products[0].ProductId"] option'))
+                    .map(opt => `<option value="${opt.value}" ${opt.disabled ? 'disabled' : ''}>${opt.textContent}</option>`)
+                    .join('')}
+            `;
+
+            block.innerHTML = `
+                        <button type="button" class="position-absolute top-0 end-0 m-2" aria-label="Remove" onclick="removeProduct(this)">✘</button>
+                <select name="Products[${productIndex}].ProductId" class="form-select product-select">
+                    ${productOptions}
+                </select>
+                <input type="number" name="Products[${productIndex}].Quantity" class="form-control mt-2" placeholder="Quantity" />
+            `;
+
+            container.appendChild(block);
+            productIndex++;
+        });
+
+
+        const form = document.getElementById('quotationForm');
+        const previewFrame = document.getElementById('previewFrame');
+
+        function debounce(func, delay) {
+            let timer;
+            return function () {
+                clearTimeout(timer);
+                timer = setTimeout(func, delay);
+            };
+        }
+
+        function removeProduct(btn) {
+            btn.closest('.product-item').remove();
+            updatePreview(); // Optional: re-trigger preview
+        }
+
+        async function updatePreview() {
+            const formData = new FormData(form);
+
+            const response = await fetch('/Quotation/Preview', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) return;
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            previewFrame.src = url;
+        }
+
+        form.addEventListener('input', debounce(updatePreview, 800));
+        form.addEventListener('change', debounce(updatePreview, 800));
+    </script>
+}

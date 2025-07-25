@@ -1,0 +1,127 @@
+﻿@model AddProductViewModel
+@{
+    ViewData["Title"] = "Add Product";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<h2 class="my-4">Add New Product</h2>
+
+<div class="row">
+    <!-- Form Section -->
+    <div class="col-md-6">
+        <form id="productForm" enctype="multipart/form-data" asp-action="Create">
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label">Product Name</label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="UnitPrice" class="form-label">Unit Price</label>
+                <input asp-for="UnitPrice" type="number" class="form-control" />
+                <span asp-validation-for="UnitPrice" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Image" class="form-label">Product Image</label>
+                <input asp-for="Image" type="file" class="form-control" />
+                <span asp-validation-for="Image" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Product Details</label>
+                <!-- Quill toolbar -->
+                <div id="toolbar" class="mb-2">
+                    <span class="ql-formats">
+                        <button class="ql-bold"></button>
+                        <button class="ql-italic"></button>
+                        <button class="ql-underline"></button>
+                        <button class="ql-strike"></button>
+                    </span>
+                    <span class="ql-formats">
+                        <button class="ql-list" value="ordered"></button>
+                        <button class="ql-list" value="bullet"></button>
+                    </span>
+                    <span class="ql-formats">
+                        <button class="ql-header" value="1"></button>
+                        <button class="ql-header" value="2"></button>
+                    </span>
+                </div>
+
+                <!-- Quill editor -->
+                <div id="editor" style="height: 200px; background-color: #fff;"></div>
+
+                <!-- Hidden input for storing HTML -->
+                <textarea id="ProductDetailsHtml" name="ProductDetailsHtml" hidden></textarea>
+            </div>
+            <button type="submit" class="btn btn-success">Save Product</button>
+        </form>
+    </div>
+
+    <!-- Preview Section -->
+    <div class="col-md-6">
+        <h4 class="mb-2">Live Preview Of Quotation (Sample)</h4>
+        <iframe id="previewFrame" width="100%" height="600px" style="border: 1px solid #ccc;"></iframe>
+    </div>
+</div>
+
+@section Scripts {
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet" />
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+
+    <script>
+        const quill = new Quill('#editor', {
+            theme: 'snow',
+            modules: {
+                toolbar: '#toolbar'
+            }
+        });
+
+        const form = document.getElementById('productForm');
+        const previewFrame = document.getElementById('previewFrame');
+        const hiddenField = document.getElementById('ProductDetailsHtml');
+
+        function debounce(func, delay) {
+            let timer;
+            return function () {
+                clearTimeout(timer);
+                timer = setTimeout(func, delay);
+            };
+        }
+
+        form.addEventListener('submit', function () {
+            hiddenField.value = quill.root.innerHTML;
+        });
+
+
+        async function updatePreview() {
+            const name = form.querySelector('[name="Name"]').value;
+            const unitPrice = form.querySelector('[name="UnitPrice"]').value;
+            const imageFile = form.querySelector('[name="Image"]').files[0];
+            const details = quill.root.innerHTML;
+
+            if (!name || !unitPrice || !imageFile || details === "<p><br></p>") return;
+
+            const formData = new FormData();
+            formData.append("Name", name);
+            formData.append("UnitPrice", unitPrice);
+            formData.append("ProductDetailsHtml", details);
+            formData.append("Image", imageFile);
+
+            const response = await fetch('/Product/Preview', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) return;
+
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            previewFrame.src = url;
+        }
+
+
+        form.addEventListener('input', debounce(updatePreview, 800));
+        quill.on('text-change', debounce(updatePreview, 800));
+    </script>
+}

@@ -1,0 +1,153 @@
+﻿@using QuotationManager.Models
+@model List<Product>
+
+@{
+    ViewData["Title"] = "All Products";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<h2 class="my-4">All Products</h2>
+
+<div class="mb-3">
+    <input type="text" id="filterInput" class="form-control" placeholder="Search by product name..." />
+</div>
+
+<table class="table table-bordered table-striped" id="productTable">
+    <thead class="table-dark">
+        <tr>
+            <th>Product Name</th>
+            <th>Unit Price (PKR)</th>
+            <th>Created By</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var p in Model)
+        {
+            var productJson = System.Text.Json.JsonSerializer.Serialize(new
+            {
+                id = p.Id,
+                name = p.Name,
+                unitPrice = p.UnitPrice,
+                detailsHtml = p.Description ?? "",
+                imagePath = p.ImagePath
+            });
+
+
+            <tr data-name="@p.Name.ToLower()">
+                <td>@p.Name</td>
+                <td>@p.UnitPrice.ToString("N0")</td>
+                <td>@p.User.Name</td>
+                <td>
+                    <button class="btn btn-info btn-sm" onclick='viewProduct(@Html.Raw(productJson))' data-bs-toggle="modal" data-bs-target="#viewModal">View</button>
+                    <button class="btn btn-warning btn-sm" onclick='editProduct(@Html.Raw(productJson))'>Edit</button>
+                    <button class="btn btn-danger btn-sm" onclick='confirmDelete(@p.Id)'>Delete</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- 🔍 View Modal -->
+<div class="modal fade" id="viewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">View Product</h5></div>
+            <div class="modal-body">
+                <p><strong>Name:</strong> <span id="viewName"></span></p>
+                <p><strong>Unit Price:</strong> Rs <span id="viewPrice"></span></p>
+                <p><strong>Description:</strong></p>
+                <div id="viewDesc" style="border: 1px solid #ccc; padding: 10px;"></div>
+                <img id="viewImg" class="img-fluid mt-2" />
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 📝 Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <form method="post" enctype="multipart/form-data" asp-action="Edit" asp-controller="Product">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title">Edit Product</h5></div>
+                <div class="modal-body">
+                    <input type="hidden" id="editId" name="Id" />
+                    <div class="mb-3">
+                        <label>Name</label>
+                        <input name="Name" id="editName" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label>Unit Price</label>
+                        <input name="UnitPrice" id="editPrice" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label>Description</label>
+                        <textarea name="Description" id="editDesc" class="form-control"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label>Change Image (optional)</label>
+                        <input type="file" name="Image" class="form-control" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Update Product</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ❌ Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="post" asp-action="Delete" asp-controller="Product">
+            <div class="modal-content">
+                <div class="modal-header"><h5>Confirm Delete</h5></div>
+                <div class="modal-body">
+                    Are you sure you want to delete this product?
+                    <input type="hidden" id="deleteId" name="Id" />
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function viewProduct(p) {
+            document.getElementById("viewName").innerText = p.name;
+            document.getElementById("viewPrice").innerText = parseFloat(p.unitPrice).toLocaleString();
+            document.getElementById("viewDesc").innerHTML = p.detailsHtml || '';
+            document.getElementById("viewImg").src = "/" + p.imagePath;
+        }
+
+        function editProduct(p) {
+            const modal = new bootstrap.Modal(document.getElementById('editModal'));
+            document.getElementById("editId").value = p.id;
+            document.getElementById("editName").value = p.name;
+            document.getElementById("editPrice").value = p.unitPrice;
+            document.getElementById("editDesc").value = p.detailsHtml || '';
+            modal.show();
+        }
+
+
+        function confirmDelete(id) {
+            const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            document.getElementById("deleteId").value = id;
+            modal.show();
+        }
+
+        // 🔍 Live search
+        document.getElementById("filterInput").addEventListener("keyup", function () {
+            const val = this.value.toLowerCase();
+            document.querySelectorAll("#productTable tbody tr").forEach(row => {
+                row.style.display = row.dataset.name.includes(val) ? "" : "none";
+            });
+        });
+    </script>
+}

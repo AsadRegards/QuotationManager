@@ -1,0 +1,58 @@
+﻿@{
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    var data = (dynamic)Model;
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+        <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+        </div>
+}
+
+
+<h2>Dashboard</h2>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card shadow-sm p-3 text-center">
+            <h6>Total Quotations</h6>
+            <h3>@data.TotalQuotations</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm p-3 text-center">
+            <h6>Quotation Value</h6>
+            <h3>Rs. @data.TotalValue.ToString("N0")</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm p-3 text-center">
+            <h6>This Month</h6>
+            <h3>@data.QuotationsThisMonth</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm p-3 text-center">
+            <h6>Total Products</h6>
+            <h3>@data.TotalProducts</h3>
+        </div>
+    </div>
+</div>
+
+<!-- Placeholder for charts -->
+<div class="row">
+    <div class="col-md-6">
+        <canvas id="quotationsChart"></canvas>
+    </div>
+    <div class="col-md-6">
+        <canvas id="topProductsChart"></canvas>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // JS chart rendering will be added after backend data is ready
+    </script>
+}
