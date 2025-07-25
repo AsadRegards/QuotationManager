@@ -53,20 +53,23 @@ This project showcases how AI tools can enhance developer productivity while mai
 
 ---
 
-## 📷 Screenshots
-
-_Add screenshots here of:_
-- Product creation form with live preview
-- Quotation live preview
-- Sample exported PDF
-
----
-
 ## 📦 Installation & Setup (Optional)
 
-> **Note:** This is a basic guide. Full setup instructions can be added later.
 
 1. Clone the repo  
    ```bash
    git clone https://github.com/AsadRegards/QuotationManager.git
    cd QuotationManager
+   ```
+2. Make sure you have SQL Server installed locally or remotely (in the cloud) and have an accessible connection string.
+3. Edit appsettings.json to replace the connectionString with your connection string.
+4. Open Package Manager Console and run the following command to Create Migrations and update the database.
+  ```base
+  Add-Migration Initial
+  Update-Database
+  ```
+5. Before starting the project, make sure to replace the default-letterhead.jpg with your letterhead image (or you can leave it as it is if you are just testing)
+5. Now start the project and create the first user, first product and first quotation.
+   
+
+
